@@ -59,6 +59,7 @@ If you're migrating from the [original repository](https://github.com/kalkih/sim
 | show_name      | boolean                                     | true            | v2.1.0 | Show/Hide name                                                                               |
 | show_forecast  | boolean                                     | false           | v2.5.0 | Show/Hide 5 day forecast                                                                     |
 | forecast_type  | string                                      | `daily`         | v2.6.0 | Show daily or hourly forecast                                                                |
+| custom_css     | string                                       | optional        | unreleased | Inject raw CSS, scoped to the card, see [Custom CSS option](#custom-css-option)         |
 
 #### Weather attributes
 
@@ -97,6 +98,10 @@ custom:
   - high: sensor.home_high_temp
   - low: sensor.home_low_temp
 ```
+
+#### Custom CSS option
+
+Inject raw CSS via the `custom_css` option. It's rendered as a `<style>` tag scoped to the card's own shadow DOM, so it can target the card's internal elements (e.g. `ha-card`, `.weather__icon`, `.weather__info`) without a separate integration like `card-mod`. See [Custom CSS example](#custom-css-example) for example usage.
 
 #### Action object options
 
@@ -168,6 +173,20 @@ custom:
     - temp: sensor.home_temp
     - high: sensor.home_high_temp
     - low: sensor.home_low_temp
+```
+
+#### Custom CSS example
+
+```yaml
+- type: custom:simple-weather-card
+  entity: weather.smhi
+  custom_css: |
+    ha-card {
+      border-radius: 24px;
+    }
+    .weather__icon {
+      filter: drop-shadow(0 0 4px var(--primary-color));
+    }
 ```
 
 ## Problems?
