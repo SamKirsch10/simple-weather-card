@@ -119,6 +119,10 @@ const BACKDROP_SCHEMA = [
 
 const ICONS_SCHEMA = [{ name: "animated_icons", selector: { boolean: {} } }];
 
+const CUSTOM_CSS_SCHEMA = [
+  { name: "custom_css", selector: { text: { multiline: true } } },
+];
+
 const LABELS: Record<string, string> = {
   entity: "Weather entity",
   name: "Name",
@@ -136,6 +140,7 @@ const LABELS: Record<string, string> = {
   fade: "Fade effect",
   animated_icons: "Animated icons",
   state_content: "State content",
+  custom_css: "Custom CSS",
 };
 
 const hexToRgb = (hex: string): [number, number, number] => {
@@ -382,6 +387,20 @@ export class SimpleWeatherCardEditor extends LitElement {
             .hass=${this.hass}
             .data=${this._config}
             .schema=${ICONS_SCHEMA}
+            .computeLabel=${this._computeLabel}
+            @value-changed=${this._valueChanged}
+          ></ha-form>
+        </div>
+      </ha-expansion-panel>
+      <ha-expansion-panel outlined>
+        <span slot="header"
+          ><ha-icon icon="mdi:code-tags"></ha-icon> Custom CSS</span
+        >
+        <div class="section-content">
+          <ha-form
+            .hass=${this.hass}
+            .data=${this._config}
+            .schema=${CUSTOM_CSS_SCHEMA}
             .computeLabel=${this._computeLabel}
             @value-changed=${this._valueChanged}
           ></ha-form>

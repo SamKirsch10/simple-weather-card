@@ -100,6 +100,7 @@ export interface CardConfig {
   animated_icons?: boolean;
   card_mod?: CardModConfig;
   uix?: UixConfig;
+  custom_css?: string;
 }
 
 export interface NormalizedConfig {
@@ -117,6 +118,7 @@ export interface NormalizedConfig {
   animated_icons: boolean;
   card_mod?: CardModConfig;
   uix?: UixConfig;
+  custom_css?: string;
 }
 
 export interface CustomState {

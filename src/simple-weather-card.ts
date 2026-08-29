@@ -166,6 +166,7 @@ export class SimpleWeatherCard extends LitElement {
       animated_icons: config.animated_icons ?? false,
       card_mod: config.card_mod,
       uix: config.uix,
+      custom_css: config.custom_css,
     };
     if (this._hass && this.entity) {
       this._subscribeForecasts(this.config.entity);
@@ -212,8 +213,17 @@ export class SimpleWeatherCard extends LitElement {
     });
   }
 
+  private renderCustomCss(): TemplateResult | string {
+    return this.config.custom_css
+      ? html`<style>
+          ${this.config.custom_css}
+        </style>`
+      : "";
+  }
+
   protected render(): TemplateResult {
     return html`
+      ${this.renderCustomCss()}
       <ha-card
         ?bg=${this.config.backdrop.bg}
         ?fade=${this.config.backdrop.fade}
