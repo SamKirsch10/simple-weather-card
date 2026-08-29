@@ -103,6 +103,8 @@ custom:
 
 Inject raw CSS via the `custom_css` option. It's rendered as a `<style>` tag scoped to the card's own shadow DOM, so it can target the card's internal elements (e.g. `ha-card`, `.weather__icon`, `.weather__info`) without a separate integration like `card-mod`. See [Custom CSS example](#custom-css-example) for example usage.
 
+`custom_css` also accepts a Jinja2 template (any string containing `{{` or `{% %}`). When a template is detected, the card subscribes to Home Assistant's `render_template` websocket API and re-renders the CSS live whenever an entity referenced in the template changes state — for example driving a color from an `input_text` or `input_select` helper. See [Templated CSS example](#templated-css-example).
+
 #### Action object options
 
 | Name            | Type   | Default     | Options                                         | Description                                                                             |
@@ -186,6 +188,17 @@ Inject raw CSS via the `custom_css` option. It's rendered as a `<style>` tag sco
     }
     .weather__icon {
       filter: drop-shadow(0 0 4px var(--primary-color));
+    }
+```
+
+#### Templated CSS example
+
+```yaml
+- type: custom:simple-weather-card
+  entity: weather.smhi
+  custom_css: |
+    ha-card {
+      color: {{ states('input_text.dashboard_theme_color') }};
     }
 ```
 

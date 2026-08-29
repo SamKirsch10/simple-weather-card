@@ -38,6 +38,9 @@ const toArray = (
   return typeof val === "string" ? [val] : val;
 };
 
+const hasTemplate = (str?: string): boolean =>
+  !!str && (str.includes("{{") || str.includes("{%"));
+
 const INFO: Record<string, { icon: string; unit: string }> = {
   precipitation: { icon: "rainy", unit: "precipitation" },
   precipitation_probability: { icon: "rainy", unit: "%" },
@@ -52,11 +55,13 @@ export class SimpleWeatherCard extends LitElement {
   @property({ type: Object }) entity?: HassEntity;
   @state() private weather?: WeatherEntity;
   @state() private custom: CustomMap = {};
+  @state() private _customCssRendered?: string;
 
   private _hass?: HomeAssistant;
   private config!: NormalizedConfig;
   private _forecast: ForecastEntry[] = [];
   private _forecastUnsubscribe?: () => void;
+  private _customCssUnsubscribe?: () => void;
 
   static styles = getStyles();
 
@@ -75,7 +80,11 @@ export class SimpleWeatherCard extends LitElement {
   set hass(hass: HomeAssistant) {
     const { custom, entity } = this.config;
 
+    const firstHass = !this._hass;
     this._hass = hass;
+    if (firstHass) {
+      this._subscribeCustomCss();
+    }
     const entityObj = hass.states[entity];
     if (entityObj && this.entity !== entityObj) {
       this.entity = entityObj;
@@ -108,6 +117,8 @@ export class SimpleWeatherCard extends LitElement {
     super.disconnectedCallback();
     this._forecastUnsubscribe?.();
     this._forecastUnsubscribe = undefined;
+    this._customCssUnsubscribe?.();
+    this._customCssUnsubscribe = undefined;
   }
 
   private _subscribeForecasts(entityId: string): void {
@@ -134,6 +145,26 @@ export class SimpleWeatherCard extends LitElement {
       },
     ).then((unsub) => {
       this._forecastUnsubscribe = unsub;
+    });
+  }
+
+  private _subscribeCustomCss(): void {
+    this._customCssUnsubscribe?.();
+    this._customCssUnsubscribe = undefined;
+    this._customCssRendered = undefined;
+
+    if (!hasTemplate(this.config.custom_css)) return;
+
+    this._hass!.connection.subscribeMessage<{ result: string }>(
+      (msg) => {
+        this._customCssRendered = msg.result;
+      },
+      {
+        type: "render_template",
+        template: this.config.custom_css,
+      },
+    ).then((unsub) => {
+      this._customCssUnsubscribe = unsub;
     });
   }
 
@@ -171,11 +202,14 @@ export class SimpleWeatherCard extends LitElement {
     if (this._hass && this.entity) {
       this._subscribeForecasts(this.config.entity);
     }
+    if (this._hass) {
+      this._subscribeCustomCss();
+    }
     this.requestUpdate();
   }
 
   protected shouldUpdate(changedProps: Map<string, unknown>): boolean {
-    return ["entity", "custom", "weather"].some((prop) =>
+    return ["entity", "custom", "weather", "_customCssRendered"].some((prop) =>
       changedProps.has(prop),
     );
   }
@@ -214,9 +248,12 @@ export class SimpleWeatherCard extends LitElement {
   }
 
   private renderCustomCss(): TemplateResult | string {
-    return this.config.custom_css
+    const css = hasTemplate(this.config.custom_css)
+      ? this._customCssRendered
+      : this.config.custom_css;
+    return css
       ? html`<style>
-          ${this.config.custom_css}
+          ${css}
         </style>`
       : "";
   }
